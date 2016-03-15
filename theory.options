@@ -4,7 +4,8 @@ OPT = -DPERIODIC
 
 #### Code specs for both theory and data Correlation Functions
 #OPT += -DDOUBLE_PREC
-OPT += -DUSE_AVX
+#### Don't use AVX just yet, I have to implement it for pvs
+#OPT += -DUSE_AVX
 OPT += -DUSE_OMP
 
 

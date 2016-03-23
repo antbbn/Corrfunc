@@ -352,7 +352,7 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
                                                                                 const DOUBLE r3 = r2 + dz * dz;
                                                                                 const DOUBLE vp = (dvx*dx + dvy*dy + dvz*dz)/SQRT(r3);
                                                                                 const DOUBLE sp = vp*vp;
-                                                                                const DOUBLE st = (dvx*dvx + dvy*dvy + dvz*dvz)-(vp*vp);
+                                                                                const DOUBLE st = (dvx*dvx + dvy*dvy + dvz*dvz)-sp;
                                                                                 const DOUBLE vt = SQRT(st);
 										
 #ifdef OUTPUT_RPAVG								

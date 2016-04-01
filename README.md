@@ -1,6 +1,6 @@
 [![Release](https://img.shields.io/github/release/manodeep/Corrfunc.svg)](https://github.com/manodeep/Corrfunc/releases/latest)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/manodeep/Corrfunc/master/LICENSE)
-[![DOI](https://zenodo.org/badge/19184/manodeep/Corrfunc.svg)](https://zenodo.org/badge/latestdoi/19184/manodeep/Corrfunc)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.48552.svg)](http://dx.doi.org/10.5281/zenodo.48552)
 [![Travis Build](https://travis-ci.org/manodeep/Corrfunc.svg?branch=master)](https://travis-ci.org/manodeep/Corrfunc)
 [![Issues](https://img.shields.io/github/issues/manodeep/Corrfunc.svg)](https://github.com/manodeep/Corrfunc/issues)
 [![Coverity](https://img.shields.io/coverity/scan/6982.svg)](https://scan.coverity.com/projects/manodeep-corrfunc)
@@ -14,12 +14,15 @@ contains the associated paper to be published in Astronomy & Computing Journal (
 # Installation
 
 ## Pre-requisites
-1. OpenMP capable compiler like ``icc``, ``gcc`` or ``clang >= 3.7``. If not available, please disable ``USE_OMP`` option option in ``theory.options`` and ``mocks.options``. You might need to ask your sys-admin for system-wide installs of the compiler; if you prefer to install your own then ``conda install gcc`` (MAC/linux) or ``(sudo) port install gcc5`` (on MAC) should work. *Note ``gcc`` on macports defaults to ``gcc48`` and the portfile is currently broken on ``El Capitan``*.
-2. ``gsl``. Use either ``conda install -c https://conda.anaconda.org/asmeurer gsl`` (MAC/linux) or ``(sudo) port install gsl`` (MAC) to install ``gsl`` if necessary. 
-3. ``python >= 2.6`` or ``python>=3.4`` for compiling the C extensions. 
-4. ``numpy>=1.7`` for compiling the C extensions. 
+1. ``make >= 3.80``
+2. OpenMP capable compiler like ``icc``, ``gcc`` or ``clang >= 3.7``. If not available, please disable ``USE_OMP`` option option in ``theory.options`` and ``mocks.options``. You might need to ask your sys-admin for system-wide installs of the compiler; if you prefer to install your own then ``conda install gcc`` (MAC/linux) or ``(sudo) port install gcc5`` (on MAC) should work. *Note ``gcc`` on macports defaults to ``gcc48`` and the portfile is currently broken on ``El Capitan``*.
+3. ``gsl``. Use either ``conda install -c https://conda.anaconda.org/asmeurer gsl`` (MAC/linux) or ``(sudo) port install gsl`` (MAC) to install ``gsl`` if necessary. 
+4. ``python >= 2.6`` or ``python>=3.4`` for compiling the C extensions. 
+5. ``numpy>=1.7`` for compiling the C extensions. 
 
 *If python and/or numpy are not available, then the C extensions will not be compiled*. 
+
+*Default compiler on MAC is set to `clang`, if you want to specify a different compiler, you will have to call `make CC=yourcompiler`*
 
 ## Preferred Method
 
@@ -27,8 +30,8 @@ contains the associated paper to be published in Astronomy & Computing Journal (
 $ git clone https://github.com/manodeep/Corrfunc/
 $ make 
 $ make install
-$ make tests 
 $ python setup.py install (--user)
+$ make tests 
 ```
 Assuming you have `gcc` in your ``PATH``, `make` and `make install` should compile and install the C libraries + python extensions within the source directory. If you would like to install the python C extensions in your environment, then ``python setup.py install (--user)`` should be sufficient. 
 
@@ -100,6 +103,19 @@ Newton-Raphson. The code will run ~20% faster at the expense of some numerical p
 Please check that the loss of precision is not important for your use-case. Also, note 
 that the mocks tests for $DD(r_p, \pi)$ *will fail* if you enable ``FAST_DIVIDE``. 
 
+# Running the codes
+
+The documentation is lacking currently but I am actively working on it. 
+
+## Using the command-line interface
+Navigate to the correct directory. Make sure that the options, set in either ``theory.options`` or ``mocks.options`` in the root directory are what you want. If not, edit those two files (and possibly ``common.mk``), and recompile. Then, you can use the command-line executables in each individual subdirectory corresponding to the clustering measure you are interested in. For example, if you want to compute the full 3-D correlation function, ``\xi(r)``, then navigate to ``xi_theory/xi`` and run the executable ``xi``. If you run executables without any arguments, the message will you tell you all the required arguments. 
+
+## Calling from C 
+Look under the ``xi_theory/examples/run_correlations.c`` and ``xi_mocks/examples/run_correlations_mocks.c`` to see examples of calling the C API directly. If you run the executables, ``run_correlations`` and ``run_correlations_mocks``, the output will also show how to call the command-line interface for the various clustering measures. 
+
+## Calling from Python 
+If all went well, the codes can be directly called from ``python``. Please see ``Corrfunc/call_correlation_functions.py`` and ``Corrfunc/call_correlation_functions_mocks.py`` for examples on how to use the Python interface. 
+
 # Common Code options for both Mocks and Cosmological Boxes
 
 1. ``DOUBLE_PREC`` -- does the calculations in double precision. Disabled
@@ -137,16 +153,20 @@ case of any issues.
 If you use the code, please cite using the Zenodo DOI. The BibTex entry for the code is  
 
 ```
-@misc{Corrfunc,
+@misc{manodeep_sinha_2016_48552,
   author       = {Manodeep Sinha},
-  title        = {{Corrfunc: Development release to create zenodo DOI 
-                   Corrfunc: Development release to create zenodo DOI}},
-  month        = nov,
-  year         = 2015,
-  doi          = {10.5281/zenodo.33655},
-  url          = {http://dx.doi.org/10.5281/zenodo.33655}
+  title        = {Corrfunc: Corrfunc-0.2.3},
+  month        = mar,
+  year         = 2016,
+  doi          = {10.5281/zenodo.48552},
+  url          = {http://dx.doi.org/10.5281/zenodo.48552}
 }
 ```
+
+# Mailing list
+
+If you have questions or comments about the package, please do so on the mailing list:
+https://groups.google.com/forum/#!forum/corrfunc
 
 # LICENSE
 

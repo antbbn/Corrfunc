@@ -21,11 +21,13 @@ wp
 xi
 DDrppi
 DDrppi_pvs
+DDrppi_pvs_bruteforce
 wprp
 bin/*
 include/*
 run_correlations
 test_*period*
+!test_*period*.c
 *.tgz
 cov-int
 *.gcno

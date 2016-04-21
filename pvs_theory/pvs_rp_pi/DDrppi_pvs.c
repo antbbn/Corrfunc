@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
 
   /*---Arguments-------------------------*/
 	char *file1=NULL,*file2=NULL;
-	char vel_file1[MAXLEN]="",vel_file2[MAXLEN]="";
 	char *fileformat1=NULL,*fileformat2=NULL;
 	char *binfile=NULL;
   DOUBLE pimax ;
@@ -54,7 +53,6 @@ int main(int argc, char *argv[])
 	
   /*---Data-variables--------------------*/
   int64_t ND1=0,ND2=0;
-  int64_t NDV1=0,NDV2=0;
 
   DOUBLE *x1=NULL,*y1=NULL,*z1=NULL;
   DOUBLE *x2=NULL,*y2=NULL,*z2=NULL;//will point to x1/y1/z1 in case of auto-corr
@@ -95,10 +93,8 @@ int main(int argc, char *argv[])
   }
   
   file1=argv[1];
-  my_snprintf(vel_file1, MAXLEN,"%s_vel",file1);
   fileformat1=argv[2];
   file2=argv[3];
-  my_snprintf(vel_file2, MAXLEN,"%s_vel",file2);
   fileformat2=argv[4];  
 	binfile=argv[5];
 
@@ -135,29 +131,16 @@ int main(int argc, char *argv[])
   
   gettimeofday(&t0,NULL);
   /*---Read-data1-file----------------------------------*/
-  ND1=read_positions(file1,fileformat1,sizeof(DOUBLE), 3, &x1, &y1, &z1);
-  NDV1=read_positions(vel_file1,fileformat1,sizeof(DOUBLE), 3, &vx1, &vy1, &vz1); //read_poisition is generic enough to read velocities :)
-  
-  if (ND1 != NDV1) {
-    fprintf(stderr,"Position and velocity files have different number of entries:\n");
-    fprintf(stderr,"\t\t %s:%ld\n",file1,ND1);
-    fprintf(stderr,"\t\t %s:%ld\n",vel_file1,NDV1);
-    return EXIT_FAILURE;
-  }
+  ND1=read_positions(file1,fileformat1,sizeof(DOUBLE), 6, &x1, &y1, &z1, &vx1, &vy1, &vz1 );
+
   gettimeofday(&t1,NULL);
   read_time += ADD_DIFF_TIME(t0,t1);
   gettimeofday(&t0,NULL);  
 
   if (autocorr==0) {
     /*---Read-data2-file----------------------------------*/
-	ND2=read_positions(file2,fileformat2,sizeof(DOUBLE), 3, &x2, &y2, &z2);
-	NDV2=read_positions(vel_file2,fileformat2,sizeof(DOUBLE), 3, &vx2, &vy2, &vz2);
-        if (ND1 != NDV1) {
-          fprintf(stderr,"Position and velocity files have different number of entries:\n");
-          fprintf(stderr,"\t\t %s:%ld",file2,ND2);
-          fprintf(stderr,"\t\t %s:%ld",vel_file2,NDV2);
-          return EXIT_FAILURE;
-        }
+	ND2=read_positions(file2,fileformat2,sizeof(DOUBLE), 6, &x2, &y2, &z2, &vx2, &vy2, &vz2);
+
     gettimeofday(&t1,NULL);
     read_time += ADD_DIFF_TIME(t0,t1);
 
@@ -167,7 +150,6 @@ int main(int argc, char *argv[])
     x2 = x1;
     y2 = y1;
     z2 = z1;
-    NDV2 = NDV1;
     vx2 = vx1;
     vy2 = vy1;
     vz2 = vz1;

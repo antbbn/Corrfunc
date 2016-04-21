@@ -30,7 +30,7 @@
 
 #include "defs.h" //for ADD_DIFF_TIME
 #include "function_precision.h" //definition of DOUBLE
-#include "pvs_countpairs_rp_pi.h" //function proto-type for countpairs
+#include "pvs_countpairs_rp_pi_bruteforce.h" //function proto-type for countpairs
 #include "io.h" //function proto-type for file input
 #include "utils.h" //general utilities
 
@@ -39,6 +39,15 @@
 #define MAXLEN 500
 #endif
 
+#ifndef DOUBLE_PREC
+#define DOUBLE_PREC
+#endif
+
+#ifndef OUTPUT_RPAVG
+#define OUTPUT_RPAVG
+#endif
+
+
 void Printhelp(void);
 
 int main(int argc, char *argv[])
@@ -46,7 +55,6 @@ int main(int argc, char *argv[])
 
   /*---Arguments-------------------------*/
 	char *file1=NULL,*file2=NULL;
-	char vel_file1[MAXLEN]="",vel_file2[MAXLEN]="";
 	char *fileformat1=NULL,*fileformat2=NULL;
 	char *binfile=NULL;
   DOUBLE pimax ;
@@ -89,10 +97,8 @@ int main(int argc, char *argv[])
   }
   
   file1=argv[1];
-  my_snprintf(vel_file1, MAXLEN,"%s_vel",file1);
   fileformat1=argv[2];
   file2=argv[3];
-  my_snprintf(vel_file2, MAXLEN,"%s_vel",file2);
   fileformat2=argv[4];  
 	binfile=argv[5];
 
@@ -168,13 +174,13 @@ int main(int argc, char *argv[])
 
 	const DOUBLE dpi = pimax/(DOUBLE)results->npibin ;
 	const int npibin = results->npibin;
-	for(int i=1;i<results->nbin;i++) {
-	  const double logrp = LOG10(results->rupp[i]);
-	  for(int j=0;j<npibin;j++) {
-      int index = i*(npibin+1) + j;
-      fprintf(stdout,"%10"PRIu64" %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf  %20.8lf \n",results->npairs[index],results->vpavg[index],results->spavg[index],results->vtavg[index],results->stavg[index],results->rpavg[index],logrp,(j+1)*dpi);
-    }
-  }
+        for(int i=1;i<results->nbin;i++) {
+          const double logrp = LOG10(results->rupp[i]);
+          for(int j=0;j<npibin;j++) {
+            int index = i*(npibin+1) + j;
+            fprintf(stdout,"%10"PRIu64" %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf  %20.8lf \n",results->npairs[index],results->vpavg[index],results->spavg[index],results->vtavg[index],results->stavg[index],results->rpavg[index],logrp,(j+1)*dpi);
+          }
+        }
 
 	//free memory in results struct
 	free_results_pvs_rp_pi(&results);
@@ -187,7 +193,7 @@ int main(int argc, char *argv[])
 
 
 
-}
+
 /*---Print-help-information---------------------------*/
 void Printhelp(void)
 {

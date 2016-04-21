@@ -10,15 +10,33 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "pvs_countpairs_rp_pi.h" //function proto-type
-#include "gridlink_pvs.h"//function proto-type for gridlink
-#include "cellarray_pvs.h" //definition of struct cellarray_pvs
+#include "pvs_countpairs_rp_pi_bruteforce.h" //function proto-type
 #include "utils.h" //all of the utilities
 #include "progressbar.h" //for the progressbar
 
 #if defined(USE_AVX) && defined(__AVX__)
 #include "avx_calls.h"
 #endif
+
+void get_max_min(const int64_t ND1, const DOUBLE * restrict X1, const DOUBLE * restrict Y1, const DOUBLE * restrict Z1,
+				 DOUBLE *min_x, DOUBLE *min_y, DOUBLE *min_z, DOUBLE *max_x, DOUBLE *max_y, DOUBLE *max_z)
+{
+  DOUBLE xmin = *min_x, ymin = *min_y, zmin=*min_z;
+  DOUBLE xmax = *max_x, ymax = *max_y, zmax=*max_z;
+	
+  for(int64_t i=0;i<ND1;i++) {
+    if(X1[i] < xmin) xmin=X1[i];
+    if(Y1[i] < ymin) ymin=Y1[i];
+    if(Z1[i] < zmin) zmin=Z1[i];
+
+
+    if(X1[i] > xmax) xmax=X1[i];
+    if(Y1[i] > ymax) ymax=Y1[i];
+    if(Z1[i] > zmax) zmax=Z1[i];
+  }
+	*min_x=xmin;*min_y=ymin;*min_z=zmin;
+	*max_x=xmax;*max_y=ymax;*max_z=zmax;
+}
 
 
 void free_results_pvs_rp_pi(results_pvs_countpairs_rp_pi **results)
@@ -43,7 +61,7 @@ void free_results_pvs_rp_pi(results_pvs_countpairs_rp_pi **results)
 }
 
 
-results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOUBLE *X1, const DOUBLE *Y1, const DOUBLE *Z1,const DOUBLE *VX1, const DOUBLE *VY1, const DOUBLE *VZ1,
+results_pvs_countpairs_rp_pi * bruteforce_pvs_countpairs_rp_pi(const int64_t ND1, const DOUBLE *X1, const DOUBLE *Y1, const DOUBLE *Z1,const DOUBLE *VX1, const DOUBLE *VY1, const DOUBLE *VZ1,
                                                     const int64_t ND2, const DOUBLE *X2, const DOUBLE *Y2, const DOUBLE *Z2,const DOUBLE *VX2, const DOUBLE *VY2, const DOUBLE *VZ2,
                                                     const int autocorr,
                                                     const char *binfile,
@@ -125,7 +143,7 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
 
   int interrupted=0;
   int64_t numdone=0;
-  init_my_progressbar(totncells,&interrupted);
+  init_my_progressbar(ND1,&interrupted);
 
 
   /*---Loop-over-lattice1--------------------*/
@@ -134,38 +152,39 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
     my_progressbar(numdone,&interrupted);
     numdone++;
 
-    DOUBLE x1pos = x1[index1];
-    DOUBLE y1pos = y1[index1];
-    DOUBLE z1pos = z1[index1];
-    DOUBLE vx1pos = vx1[index1]; //name does not make much sense
-    DOUBLE vy1pos = vy1[index1];
-    DOUBLE vz1pos = vz1[index1];
+    DOUBLE x1pos = X1[index1];
+    DOUBLE y1pos = Y1[index1];
+    DOUBLE z1pos = Z1[index1];
+    DOUBLE vx1pos = VX1[index1]; //name does not make much sense
+    DOUBLE vy1pos = VY1[index1];
+    DOUBLE vz1pos = VZ1[index1];
 
     //#ifdef PERIODIC
     //                    x1pos += off_xwrap;
     //                    y1pos += off_ywrap;
     //                    z1pos += off_zwrap;
     //#endif
-
-    for (int64_t index2=index1+1;index2 < ND2; index2++)	{
-      const DOUBLE dx =      localx2[index2]-x1pos;
-      const DOUBLE dy =      localy2[index2]-y1pos;
-      const DOUBLE dz =      localz2[index2]-z1pos;
-      const DOUBLE dzabs = FABS(dz);
-      const DOUBLE dvx =      localvx2[index2]-vx1pos;
-      const DOUBLE dvy =      localvy2[index2]-vy1pos;
-      const DOUBLE dvz =      localvz2[index2]-vz1pos;
+    
+    // *_countpairs_rp_pi double counts
+    for (int64_t index2=0;index2 < ND2; index2++)	{ 
+      DOUBLE dx =      X2[index2]-x1pos;
+      DOUBLE dy =      Y2[index2]-y1pos;
+      DOUBLE dz =      Z2[index2]-z1pos;
+      const DOUBLE dvx =      VX2[index2]-vx1pos;
+      const DOUBLE dvy =      VY2[index2]-vy1pos;
+      const DOUBLE dvz =      VZ2[index2]-vz1pos;
 
 #ifdef PERIODIC
-      if (dx > xdiff/2.) dx = xdiff - dx
-      else if (dx < -1*xdiff/2.) dx = xdiff + dx
+      if (dx > xdiff/2.) dx = xdiff - dx;
+      else if (dx < -1*xdiff/2.) dx = xdiff + dx;
 
-      if (dy > ydiff/2.) dy = ydiff - dy
-      else if (dy < -1*ydiff/2.) dy = ydiff + dy
+      if (dy > ydiff/2.) dy = ydiff - dy;
+      else if (dy < -1*ydiff/2.) dy = ydiff + dy;
 
-      if (dz > zdiff/2.) dz = zdiff - dz
-      else if (dz < -1*zdiff/2.) dz = zdiff + dz
+      if (dz > zdiff/2.) dz = zdiff - dz;
+      else if (dz < -1*zdiff/2.) dz = zdiff + dz;
 #endif
+      const DOUBLE dzabs = FABS(dz);
 
       const DOUBLE r2 = dx*dx + dy*dy;
       if (r2 >= sqr_rpmax || r2 < sqr_rpmin || dzabs >= pimax) {
@@ -255,27 +274,6 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
   }
 
   free(rupp);
-  for(int64_t i=0;i<totncells;i++) {
-    free(lattice1[i].x);
-    free(lattice1[i].y);
-    free(lattice1[i].z);
-    free(lattice1[i].vx);
-    free(lattice1[i].vy);
-    free(lattice1[i].vz);
-    if(autocorr==0) {
-      free(lattice2[i].x);
-      free(lattice2[i].y);
-      free(lattice2[i].z);
-      free(lattice2[i].vx);
-      free(lattice2[i].vy);
-      free(lattice2[i].vz);
-    }
-  }
 
-  free(lattice1);
-  if(autocorr==0) {
-    free(lattice2);
-  }
-	
   return results;
 }

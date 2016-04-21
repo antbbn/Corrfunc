@@ -9,20 +9,12 @@ CLINK:=
 
 ### You should NOT edit below this line
 DISTNAME:=Corrfunc
-MAJOR:=0
-MINOR:=2
-PATCHLEVEL:=3
+MAJOR:=1
+MINOR:=0
+PATCHLEVEL:=0
 VERSION:=$(MAJOR).$(MINOR).$(PATCHLEVEL)
 
-## Colored text output
-## Taken from: http://stackoverflow.com/questions/24144440/color-highlighting-of-makefile-warnings-and-errors
-export SHELL:=$(shell which sh)
-ccreset:=$(shell echo "\033[0;0m")
-ccred:=$(shell echo "\033[0;31m")
-ccmagenta:=$(shell echo "\033[0;35m")
-ccgreen:=$(shell echo "\033[0;32m")
-ccblue:=$(shell echo "\033[0;34m")
-## end of colored text output
+
 
 DO_CHECKS := 1
 ifeq (clean,$(findstring clean,$(MAKECMDGOALS)))
@@ -35,10 +27,6 @@ endif
 
 ## Only set everything if the command is not "make clean"
 ifeq ($(DO_CHECKS), 1)
-  ## Make clang the default compiler on Mac
-  ## But first check for clang-omp, use that if available
-  UNAME := $(shell uname)
-
   ## First check make version. Versions of make older than 3.80 will crash
   ifneq (3.80,$(firstword $(sort $(MAKE_VERSION) 3.80)))
     ## Order-only attributes were added to make version 3.80
@@ -52,8 +40,27 @@ ifeq ($(DO_CHECKS), 1)
     endif
     $(error $(ccmagenta)Project requires make >= 3.80 to compile.$(ccreset))
   endif
+  #end of checks for make. 
 
 
+  UNAME := $(shell uname)
+  ## Colored text output
+  ## Taken from: http://stackoverflow.com/questions/24144440/color-highlighting-of-makefile-warnings-and-errors
+  ## Except, you have to use "echo -e" on linux and "echo" on Mac
+  ECHO_COMMAND := echo -e
+  ifeq ($(UNAME), Darwin)
+    ECHO_COMMAND := echo
+  endif
+  ccreset :=$(shell $(ECHO_COMMAND) "\033[0;0m")
+  ccred:=$(shell $(ECHO_COMMAND) "\033[0;31m")
+  ccmagenta:=$(shell $(ECHO_COMMAND) "\033[0;35m")
+  ccgreen:=$(shell $(ECHO_COMMAND) "\033[0;32m")
+  ccblue:=$(shell $(ECHO_COMMAND) "\033[0;34m")
+  ## end of colored text output
+
+
+  ## Make clang the default compiler on Mac
+  ## But first check for clang-omp, use that if available
   ifeq ($(UNAME), Darwin)
     CLANG_OMP_FOUND := $(shell clang-omp --version 2>/dev/null)
     ifndef CLANG_OMP_FOUND
@@ -62,6 +69,33 @@ ifeq ($(DO_CHECKS), 1)
       CC := clang-omp
     endif
   endif
+  # Check if CPU supports AVX -> this trumps everything. For instance, compiler might
+  # support AVX but the cpu might not. Then compilation will work fine but there will
+  # be a runtime crash with "Illegal Instruction"
+  ifeq ($(UNAME), Darwin)
+    # On a MAC, best to use sysctl
+    AVX_AVAIL := $(shell sysctl -n machdep.cpu.features 2>/dev/null | grep -o -i AVX | tr '[:lower:]' '[:upper:]')
+  else
+    # On Linux/Unix, just grep on /proc/cpuinfo
+    # There might be multiple cores, so just take the first line
+    # (Is it possible that someone has one core that has AVX and another that doesnt?)
+    AVX_AVAIL := $(shell grep -o -i AVX /proc/cpuinfo 2>/dev/null | head -n 1 | tr '[:lower:]' '[:upper:]' )
+  endif
+  REMOVE_AVX :=0
+  ifdef AVX_AVAIL
+    ifneq ($(AVX_AVAIL) , AVX)
+      REMOVE_AVX := 1
+    endif
+  else
+    REMOVE_AVX :=1
+  endif
+
+  ifeq ($(REMOVE_AVX), 1)
+    $(warning $(ccmagenta) CPU does not seem support AVX instructions. Removing USE_AVX from compile options. $(ccreset))
+    OPT:=$(filter-out -DUSE_AVX,$(OPT))
+  endif
+  # end of checking if CPU supports AVX      
+
 
   # Now check if gcc is set to be the compiler but if clang is really under the hood.
   export CC_IS_CLANG ?= -1
@@ -101,15 +135,6 @@ ifeq ($(DO_CHECKS), 1)
   GSL_CFLAGS := $(shell gsl-config --cflags)
   GSL_LIBDIR := $(shell gsl-config --prefix)/lib
   GSL_LINK   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
-
-  # Check if code is running on travis
-  ifeq (osx, $(findstring osx, ${TRAVIS_OS_NAME}))
-    ifeq (USE_AVX, $(findstring USE_AVX,$(OPT)))
-      $(warning $(ccmagenta) TRAVIS CI OSX workers do not seem to support AVX instructions. Removing USE_AVX from compile options. $(ccreset))
-      OPT:=$(filter-out -DUSE_AVX,$(OPT))
-  endif
-  endif
-  # done with removing USE_AVX under osx on Travis
 
   # Check if all progressbar output is to be suppressed
   OUTPUT_PGBAR := 1
@@ -280,7 +305,7 @@ ifeq ($(DO_CHECKS), 1)
 
     ## I only need this so that I can print out the full python version (correctly)
     ## in case of error
-	  PYTHON_VERSION_PATCH := $(word 3,${PYTHON_VERSION_FULL})
+    PYTHON_VERSION_PATCH := $(word 3,${PYTHON_VERSION_FULL})
 
     ## Check numpy version
     export NUMPY_VERSION_FULL :=  $(wordlist 1,3,$(subst ., ,$(shell python -c "from __future__ import print_function; import numpy; print(numpy.__version__)")))
@@ -332,13 +357,14 @@ ifeq ($(DO_CHECKS), 1)
       PYTHON_LINK := $(filter-out -framework, $(PYTHON_LINK))
       PYTHON_LINK := $(filter-out -ldl, $(PYTHON_LINK))
       PYTHON_LINK := $(filter-out CoreFoundation, $(PYTHON_LINK))
-      PYTHON_LINK += -dynamiclib -Wl,-compatibility_version,$(VERSION) -Wl,-current_version,$(VERSION)
+      PYTHON_LINK += -dynamiclib -Wl,-compatibility_version,$(MAJOR).$(MINOR) -Wl,-current_version,$(VERSION)
+      PYTHON_LINK += -headerpad_max_install_names
 
       ### Another check for stack-size. travis ci chokes on this with gcc
       # comma := ,
       # PYTHON_LINK := $(filter-out -Wl$(comma)-stack_size$(comma)1000000$(comma), $(PYTHON_LINK))
       # PYTHON_LINK := $(filter-out -Wl$(comma)-stack_size$(comma)1000000$(comma), $(PYTHON_LINK))
-	    # PYTHON_LINK := $(filter-out -stack_size$(comma)1000000$(comma), $(PYTHON_LINK))
+      # PYTHON_LINK := $(filter-out -stack_size$(comma)1000000$(comma), $(PYTHON_LINK))
     endif #Darwin checks
     export PYTHON_CHECKED:=1
   endif

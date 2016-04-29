@@ -136,7 +136,7 @@ int test_periodic_DDrppi_pvs(const char *correct_outputfile)
         const double logrp = LOG10(results->rupp[i]);
         for(int j=0;j<npibin;j++) {
             int index = i*(npibin+1) + j;
-            fprintf(stdout,"%10"PRIu64" %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf  %20.8lf \n",results->npairs[index],results->vpavg[index],results->spavg[index],results->vtavg[index],results->stavg[index],results->rpavg[index],logrp,(j+1)*dpi);
+            fprintf(fp,"%10"PRIu64" %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf  %20.8lf \n",results->npairs[index],results->vpavg[index],results->spavg[index],results->vtavg[index],results->stavg[index],results->rpavg[index],logrp,(j+1)*dpi);
         }
     }
     fclose(fp);

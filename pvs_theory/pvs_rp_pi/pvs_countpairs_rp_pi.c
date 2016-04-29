@@ -150,6 +150,12 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
 	DOUBLE spavg[totnbins];
 	DOUBLE vtavg[totnbins];
 	DOUBLE stavg[totnbins];
+#ifdef KAHN_SUM
+        DOUBLE vpavg_c[totnbins];
+        DOUBLE spavg_c[totnbins];
+        DOUBLE vtavg_c[totnbins];
+        DOUBLE stavg_c[totnbins];
+#endif
 #ifdef OUTPUT_RPAVG
 	DOUBLE rpavg[totnbins];
 #endif	
@@ -159,6 +165,12 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
 		spavg[ibin] = 0.0;
 		vtavg[ibin] = 0.0;
 		stavg[ibin] = 0.0;
+#ifdef KAHN_SUM
+                vpavg_c[ibin] = 0.0;
+                spavg_c[ibin] = 0.0;
+                vtavg_c[ibin] = 0.0;
+                stavg_c[ibin] = 0.0;
+#endif
 #ifdef OUTPUT_RPAVG		
 		rpavg[ibin] = 0.0;
 #endif		
@@ -199,6 +211,12 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
                 DOUBLE spavg[totnbins];
                 DOUBLE vtavg[totnbins];
                 DOUBLE stavg[totnbins];
+#ifdef KAHN_SUM
+                DOUBLE vpavg_c[totnbins];
+                DOUBLE spavg_c[totnbins];
+                DOUBLE vtavg_c[totnbins];
+                DOUBLE stavg_c[totnbins];
+#endif
 #ifdef OUTPUT_RPAVG		
 		DOUBLE rpavg[totnbins];
 #endif			
@@ -208,6 +226,12 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
                   spavg[i] = 0.0;
                   vtavg[i] = 0.0;
                   stavg[i] = 0.0;
+#ifdef KAHN_SUM
+                  vpavg_c[i] = 0.0;
+                  spavg_c[i] = 0.0;
+                  vtavg_c[i] = 0.0;
+                  stavg_c[i] = 0.0;
+#endif
 #ifdef OUTPUT_RPAVG		
                   rpavg[i] = 0.0;
 #endif		
@@ -360,14 +384,51 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
 #endif								
 										int pibin = (int) (dzabs*inv_dpi);
 										pibin = pibin > npibin ? npibin:pibin;
+
 										for(int kbin=nrpbin-1;kbin>=1;kbin--) {
 											if(r2 >= rupp_sqr[kbin-1]) {
+
+#ifdef KAHN_SUM
+                                                                                                DOUBLE tmp1, tmp2;
+#endif
 												const int ibin = kbin*(npibin+1) + pibin;
 												npairs[ibin]++;
-												vpavg[ibin]+=vp;
-												spavg[ibin]+=sp;
-												vtavg[ibin]+=vt;
-												stavg[ibin]+=st;
+#ifndef KAHN_SUM
+                                                                                                vpavg[ibin]+=vp;
+#else
+                                                                                                tmp1 = vp - vpavg_c[ibin];
+                                                                                                tmp2 = vpavg[ibin] + tmp1;
+                                                                                                vpavg_c[ibin] = (tmp2 - vpavg[ibin]) - tmp1;
+                                                                                                vpavg[ibin] = tmp2 ;
+#endif
+
+#ifndef KAHN_SUM
+                                                                                                spavg[ibin]+=sp;
+#else
+                                                                                                tmp1 = sp - spavg_c[ibin];
+                                                                                                tmp2 = spavg[ibin] + tmp1;
+                                                                                                spavg_c[ibin] = (tmp2 - spavg[ibin]) - tmp1;
+                                                                                                spavg[ibin] = tmp2 ;
+#endif
+
+
+#ifndef KAHN_SUM
+                                                                                                vtavg[ibin]+=vt;
+#else
+                                                                                                tmp1 = vt - vtavg_c[ibin];
+                                                                                                tmp2 = vtavg[ibin] + tmp1;
+                                                                                                vtavg_c[ibin] = (tmp2 - vtavg[ibin]) - tmp1;
+                                                                                                vtavg[ibin] = tmp2 ;
+#endif
+
+#ifndef KAHN_SUM
+                                                                                                stavg[ibin]+=st;
+#else
+                                                                                                tmp1 = st - stavg_c[ibin];
+                                                                                                tmp2 = stavg[ibin] + tmp1;
+                                                                                                stavg_c[ibin] = (tmp2 - stavg[ibin]) - tmp1;
+                                                                                                stavg[ibin] = tmp2 ;
+#endif
 #ifdef OUTPUT_RPAVG										
 												rpavg[ibin]+=r;
 #endif										
@@ -386,6 +447,7 @@ results_pvs_countpairs_rp_pi * pvs_countpairs_rp_pi(const int64_t ND1, const DOU
 								
 // NOT IMPLEMENTED YET
 #else //beginning of AVX section
+#error Not implemented
 								union int8 {
 									AVX_INTS m_ibin;
 									int ibin[NVEC];

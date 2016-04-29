@@ -125,6 +125,12 @@ results_pvs_countpairs_rp_pi * bruteforce_pvs_countpairs_rp_pi(const int64_t ND1
   DOUBLE spavg[totnbins];
   DOUBLE vtavg[totnbins];
   DOUBLE stavg[totnbins];
+#ifdef KAHN_SUM
+  DOUBLE vpavg_c[totnbins];
+  DOUBLE spavg_c[totnbins];
+  DOUBLE vtavg_c[totnbins];
+  DOUBLE stavg_c[totnbins];
+#endif
 #ifdef OUTPUT_RPAVG
   DOUBLE rpavg[totnbins];
 #endif	
@@ -134,11 +140,16 @@ results_pvs_countpairs_rp_pi * bruteforce_pvs_countpairs_rp_pi(const int64_t ND1
     spavg[ibin] = 0.0;
     vtavg[ibin] = 0.0;
     stavg[ibin] = 0.0;
+#ifdef KAHN_SUM
+    vpavg_c[ibin] = 0.0;
+    spavg_c[ibin] = 0.0;
+    vtavg_c[ibin] = 0.0;
+    stavg_c[ibin] = 0.0;
+#endif
 #ifdef OUTPUT_RPAVG		
     rpavg[ibin] = 0.0;
 #endif		
   }
-
 
 
   int interrupted=0;
@@ -175,14 +186,14 @@ results_pvs_countpairs_rp_pi * bruteforce_pvs_countpairs_rp_pi(const int64_t ND1
       const DOUBLE dvz =      VZ2[index2]-vz1pos;
 
 #ifdef PERIODIC
-      if (dx > xdiff/2.) dx = xdiff - dx;
-      else if (dx < -1*xdiff/2.) dx = xdiff + dx;
+      if (dx > xdiff/2.) dx = dx - xdiff;
+      else if (dx < -1*xdiff/2.) dx = dx + xdiff ;
 
-      if (dy > ydiff/2.) dy = ydiff - dy;
-      else if (dy < -1*ydiff/2.) dy = ydiff + dy;
+      if (dy > ydiff/2.) dy = dy - ydiff;
+      else if (dy < -1*ydiff/2.) dy = dy + ydiff ;
 
-      if (dz > zdiff/2.) dz = zdiff - dz;
-      else if (dz < -1*zdiff/2.) dz = zdiff + dz;
+      if (dz > zdiff/2.) dz = dz - zdiff;
+      else if (dz < -1*zdiff/2.) dz = dz + zdiff ;
 #endif
       const DOUBLE dzabs = FABS(dz);
 
@@ -202,14 +213,50 @@ results_pvs_countpairs_rp_pi * bruteforce_pvs_countpairs_rp_pi(const int64_t ND1
 #endif								
       int pibin = (int) (dzabs*inv_dpi);
       pibin = pibin > npibin ? npibin:pibin;
+      
+      DOUBLE tmp1, tmp2;
       for(int kbin=nrpbin-1;kbin>=1;kbin--) {
         if(r2 >= rupp_sqr[kbin-1]) {
           const int ibin = kbin*(npibin+1) + pibin;
           npairs[ibin]++;
+
+#ifndef KAHN_SUM
           vpavg[ibin]+=vp;
+#else
+          tmp1 = vp - vpavg_c[ibin];
+          tmp2 = vpavg[ibin] + tmp1;
+          vpavg_c[ibin] = (tmp2 - vpavg[ibin]) - tmp1;
+          vpavg[ibin] = tmp2 ;
+#endif
+
+#ifndef KAHN_SUM
           spavg[ibin]+=sp;
+#else
+          tmp1 = sp - spavg_c[ibin];
+          tmp2 = spavg[ibin] + tmp1;
+          spavg_c[ibin] = (tmp2 - spavg[ibin]) - tmp1;
+          spavg[ibin] = tmp2 ;
+#endif
+
+
+#ifndef KAHN_SUM
           vtavg[ibin]+=vt;
+#else
+          tmp1 = vt - vtavg_c[ibin];
+          tmp2 = vtavg[ibin] + tmp1;
+          vtavg_c[ibin] = (tmp2 - vtavg[ibin]) - tmp1;
+          vtavg[ibin] = tmp2 ;
+#endif
+          
+#ifndef KAHN_SUM
           stavg[ibin]+=st;
+#else
+          tmp1 = st - stavg_c[ibin];
+          tmp2 = stavg[ibin] + tmp1;
+          stavg_c[ibin] = (tmp2 - stavg[ibin]) - tmp1;
+          stavg[ibin] = tmp2 ;
+#endif
+
 #ifdef OUTPUT_RPAVG										
           rpavg[ibin]+=r;
 #endif		

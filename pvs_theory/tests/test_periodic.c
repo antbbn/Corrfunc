@@ -28,6 +28,11 @@
 #define OUTPUT_RPAVG
 #endif
 
+// Kahn summation is needed to make the tests more accurate.
+#ifndef KAHN_SUM
+#define KAHN_SUM
+#endif
+
 #ifndef SILENT
 #define SILENT
 #endif

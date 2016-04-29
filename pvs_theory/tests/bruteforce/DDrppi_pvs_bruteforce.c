@@ -39,14 +39,6 @@
 #define MAXLEN 500
 #endif
 
-#ifndef DOUBLE_PREC
-#define DOUBLE_PREC
-#endif
-
-#ifndef OUTPUT_RPAVG
-#define OUTPUT_RPAVG
-#endif
-
 
 void Printhelp(void);
 

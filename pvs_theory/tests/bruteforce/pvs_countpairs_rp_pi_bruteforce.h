@@ -15,6 +15,16 @@ extern "C" {
 #include "function_precision.h" //for definition of DOUBLE
 #include <inttypes.h> //for uint64_t
 
+#ifndef DOUBLE_PREC
+#define DOUBLE_PREC
+#endif
+
+#ifndef OUTPUT_RPAVG
+#define OUTPUT_RPAVG
+#endif
+
+#define KAHN_SUM
+
 //define the results structure
 typedef struct{
 	uint64_t *npairs;

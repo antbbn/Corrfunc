@@ -1,9 +1,10 @@
 /* File: test_periodic.c */
 /*
-  This file is a part of the Corrfunc package
-  Copyright (C) 2015-- Manodeep Sinha (manodeep@gmail.com)
-  License: MIT LICENSE. See LICENSE file under the top-level
-  directory at https://github.com/manodeep/Corrfunc/
+		This file is part of the PVS extension to the Corrfunc package
+		Copyright (C) 2016-- Antonio Bibiano (antbbn@gmail.com)
+		Copyright (C) 2015-- Manodeep Sinha (manodeep@gmail.com)
+		License: MIT LICENSE. See LICENSE file under the top-level
+		directory at https://github.com/manodeep/Corrfunc/
 */
 
 #include <stdio.h>

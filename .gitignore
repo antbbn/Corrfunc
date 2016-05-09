@@ -22,6 +22,8 @@ xi
 DDrppi
 DDrppi_pvs
 DDrppi_pvs_bruteforce
+DDpvs
+DDpvs_bruteforce
 wprp
 bin/*
 include/*

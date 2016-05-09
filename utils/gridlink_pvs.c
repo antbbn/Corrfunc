@@ -37,6 +37,15 @@ double get_binsize(const double xmin,const double xmax, const double rmax, const
   return xbinsize;
 }
 
+void free_cellarray_nvec_pvs(cellarray_nvec_pvs *lattice, const int64_t totncells)
+{
+    for(int64_t i=0;i<totncells;i++) {
+        free(lattice[i].pos);
+        free(lattice[i].vel);
+    }
+    free(lattice);
+}
+
 void get_max_min(const int64_t ND1, const DOUBLE * restrict X1, const DOUBLE * restrict Y1, const DOUBLE * restrict Z1,
 				 DOUBLE *min_x, DOUBLE *min_y, DOUBLE *min_z, DOUBLE *max_x, DOUBLE *max_y, DOUBLE *max_z)
 {
@@ -195,9 +204,9 @@ cellarray_pvs * gridlink_pvs(const int64_t np,
   return lattice;
 }
 
-//NOT IMPLEMENTED YET
-cellarray_nvec * gridlink_nvec(const int64_t np,
+cellarray_nvec_pvs * gridlink_nvec_pvs(const int64_t np,
 															 const DOUBLE *x,const DOUBLE *y,const DOUBLE *z,
+                                                                                                                         const DOUBLE *vx,const DOUBLE *vy,const DOUBLE *vz,
 															 const DOUBLE xmin, const DOUBLE xmax,
 															 const DOUBLE ymin, const DOUBLE ymax,
 															 const DOUBLE zmin, const DOUBLE zmax,
@@ -211,7 +220,7 @@ cellarray_nvec * gridlink_nvec(const int64_t np,
 															 int *nlattice_y,
 															 int *nlattice_z)
 {
-  cellarray_nvec *lattice=NULL;
+  cellarray_nvec_pvs *lattice=NULL;
   int ix,iy,iz;
   int nmesh_x,nmesh_y,nmesh_z;
   int64_t *nallocated=NULL;
@@ -246,16 +255,17 @@ cellarray_nvec * gridlink_nvec(const int64_t np,
 #ifndef SILENT	
   fprintf(stderr,"In %s> Running with [nmesh_x, nmesh_y, nmesh_z]  = %d,%d,%d. ",__FUNCTION__,nmesh_x,nmesh_y,nmesh_z);
 #endif	
-  lattice    = (cellarray_nvec *) my_malloc(sizeof(cellarray_nvec), totncells);
+  lattice    = (cellarray_nvec_pvs *) my_malloc(sizeof(cellarray_nvec_pvs), totncells);
   nallocated = (int64_t *)       my_malloc(sizeof(*nallocated)      , totncells);
 
   /*
-	Allocate memory for each of the fields in cellarray_nvec. Since we haven't processed the data yet, 
+	Allocate memory for each of the fields in cellarray_nvec_pvs. Since we haven't processed the data yet, 
 	expected_n is a reasonable guess as to the number of points in the cell. 
    */
   for (int64_t index=0;index<totncells;index++) {
 		const size_t memsize=3*sizeof(DOUBLE);
 		lattice[index].pos = my_malloc(memsize,expected_n);//This allocates extra and is wasteful
+		lattice[index].vel = my_malloc(memsize,expected_n);//This allocates extra and is wasteful
 		lattice[index].nelements=0;
 		nallocated[index] = expected_n;
   }
@@ -293,9 +303,9 @@ cellarray_nvec * gridlink_nvec(const int64_t np,
 	  // at a time. Smaller memory footprint
       while(expected_n <= nallocated[index] || ((expected_n % NVEC) != 0))
 				expected_n++;
-
 			const size_t memsize=3*sizeof(DOUBLE);
 			lattice[index].pos = my_realloc(lattice[index].pos ,memsize,expected_n,"lattice.pos");
+			lattice[index].vel = my_realloc(lattice[index].vel ,memsize,expected_n,"lattice.vel");
 			nallocated[index] = expected_n;
     }
     assert(lattice[index].nelements < nallocated[index] && "Ensuring that number of particles in a cell doesn't corrupt memory");
@@ -307,9 +317,15 @@ cellarray_nvec * gridlink_nvec(const int64_t np,
 		DOUBLE *xpos = &(lattice[index].pos[xoffset]);
 		DOUBLE *ypos = &(lattice[index].pos[yoffset]);
 		DOUBLE *zpos = &(lattice[index].pos[zoffset]);
+		DOUBLE *xvel = &(lattice[index].vel[xoffset]);
+		DOUBLE *yvel = &(lattice[index].vel[yoffset]);
+		DOUBLE *zvel = &(lattice[index].vel[zoffset]);
 		xpos[ipos] = x[i];
 		ypos[ipos] = y[i];
 		zpos[ipos] = z[i];
+		xvel[ipos] = vx[i];
+		yvel[ipos] = vy[i];
+		zvel[ipos] = vz[i];
 		lattice[index].nelements++;
 	}
   free(nallocated);

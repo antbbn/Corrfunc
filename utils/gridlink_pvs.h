@@ -33,9 +33,9 @@ cellarray_pvs * gridlink_pvs(const int64_t np,
 										 int *nlattice_z) __attribute__((warn_unused_result)); 
 
 										 
-// NOT IMPLEMENTED YET
-cellarray_nvec * gridlink_nvec(const int64_t np,
+cellarray_nvec_pvs * gridlink_nvec_pvs(const int64_t np,
 															 const DOUBLE *x,const DOUBLE *y,const DOUBLE *z,
+                                                                                                                         const DOUBLE *vx,const DOUBLE *vy,const DOUBLE *vz,
 															 const DOUBLE xmin, const DOUBLE xmax,
 															 const DOUBLE ymin, const DOUBLE ymax,
 															 const DOUBLE zmin, const DOUBLE zmax,
@@ -49,6 +49,7 @@ cellarray_nvec * gridlink_nvec(const int64_t np,
 															 int *nlattice_y,
 															 int *nlattice_z) __attribute__((warn_unused_result)); 
 
+void free_cellarray_nvec_pvs(cellarray_nvec_pvs *lattice, const int64_t totncells);
 	
 void get_max_min(const int64_t ND1, const DOUBLE * restrict X1, const DOUBLE * restrict Y1, const DOUBLE * restrict Z1,
 				 DOUBLE *min_x, DOUBLE *min_y, DOUBLE *min_z, DOUBLE *max_x, DOUBLE *max_y, DOUBLE *max_z);

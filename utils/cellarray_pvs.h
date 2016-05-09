@@ -31,11 +31,11 @@ typedef struct{
 } cellarray_pvs;
 
 
-// NOT IMPLEMENTED YET
 typedef struct{
   DOUBLE *pos;
+  DOUBLE *vel;
   int64_t nelements;
-} cellarray_nvec;//Here the xyz positions will be stored as pos[x[NVEC],y{NVEC],z[NVEC],x[NVEC]...]. Note amenable to easy sorting -> used by xi_of_r and vpf
+} cellarray_nvec_pvs;//Here the xyz positions will be stored as pos[x[NVEC],y{NVEC],z[NVEC],x[NVEC]...]. Note amenable to easy sorting -> used by xi_of_r and vpf
 	
 
 #ifdef __cplusplus

@@ -9,6 +9,6 @@ OPT += -DDOUBLE_PREC
 OPT += -DUSE_OMP
 #### Added Kahn summation to PVS calculation since to pass the tests
 #### 4x slow-down expected, activate only if you need extra numerical stability
-OPT += -DKAHN_SUM
+#OPT += -DKAHN_SUM
 
 

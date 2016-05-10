@@ -214,10 +214,10 @@ results_pvs_countpairs * countpairs_pvs_bruteforce(const int64_t ND1, const DOUB
             rpavg[kbin] += r;
 #endif
             //vpavg[kbin]+=vp;
-            DOUBLE tmp1, tmp2;
 #ifndef KAHN_SUM
             vpavg[kbin]+=vp;
 #else
+            DOUBLE tmp1, tmp2;
             tmp1 = vp - vpavg_c[kbin];
             tmp2 = vpavg[kbin] + tmp1;
             vpavg_c[kbin] = (tmp2 - vpavg[kbin]) - tmp1;

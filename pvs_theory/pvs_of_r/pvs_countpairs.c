@@ -362,13 +362,14 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
                                         const DOUBLE dx = x1pos - localx2[jj];
                                         const DOUBLE dy = y1pos - localy2[jj];
                                         const DOUBLE dz = z1pos - localz2[jj];
-                                        const DOUBLE dvx = vx1pos - localvx2[jj];
-                                        const DOUBLE dvy = vy1pos - localvy2[jj];
-                                        const DOUBLE dvz = vz1pos - localvz2[jj];
                                         const DOUBLE r2 = (dx*dx + dy*dy + dz*dz);
                                         if(r2 >= sqr_rpmax || r2 < sqr_rpmin) {
                                             continue;
                                         }
+
+                                        const DOUBLE dvx = vx1pos - localvx2[jj];
+                                        const DOUBLE dvy = vy1pos - localvy2[jj];
+                                        const DOUBLE dvz = vz1pos - localvz2[jj];
 #ifdef OUTPUT_RPAVG
                                         const DOUBLE r = SQRT(r2);
                                         const DOUBLE vp = (dvx*dx + dvy*dy + dvz*dz)/r;
@@ -396,6 +397,9 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
                                     localx2 += 3*NVEC;//this might actually exceed the allocated range but we will never dereference that
                                     localy2 += 3*NVEC;
                                     localz2 += 3*NVEC;
+                                    localvx2 += 3*NVEC;//this might actually exceed the allocated range but we will never dereference that
+                                    localvy2 += 3*NVEC;
+                                    localvz2 += 3*NVEC;
 
                                 }//end of j loop
 

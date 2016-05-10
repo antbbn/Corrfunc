@@ -48,7 +48,7 @@
 #include "gridlink_pvs.c"
 #include "io.c"
 #include "ftread.c"
-//#include "../xi_of_r/countpairs.c"
+#include "../pvs_of_r/pvs_countpairs.c"
 #include "../pvs_rp_pi/pvs_countpairs_rp_pi.c"
 //#include "../wp/countpairs_wp.c"
 //#include "../vpf/countspheres.c"
@@ -56,7 +56,7 @@
 
 char tmpoutputfile[]="./test_periodic_output.txt";
 
-//int test_periodic_DD(const char *correct_outputfile);
+int test_periodic_DDpvs(const char *correct_outputfile);
 int test_periodic_DDrppi_pvs(const char *correct_outputfile);
 //int test_wp(const char *correct_outputfile);
 //int test_vpf(const char *correct_outputfile);
@@ -84,14 +84,14 @@ char current_file1[MAXLEN],current_file2[MAXLEN];
 
 //end of global variables
 
-/*
-int test_periodic_DD(const char *correct_outputfile)
+
+int test_periodic_DDpvs(const char *correct_outputfile)
 {
     int autocorr = (X1==X2) ? 1:0;
 
     //Do the straight-up DD counts
-    results_countpairs *results = countpairs(ND1,X1,Y1,Z1,
-                                             ND2,X2,Y2,Z2,
+    results_pvs_countpairs *results = countpairs_pvs(ND1,X1,Y1,Z1,VX1,VY1,VZ1,
+                                             ND2,X2,Y2,Z2,VX2,VY2,VZ2,
 #ifdef USE_OMP
                                              nthreads,
 #endif
@@ -102,7 +102,7 @@ int test_periodic_DD(const char *correct_outputfile)
     FILE *fp=NULL;
     fp=my_fopen(tmpoutputfile,"w");
     for(int i=1;i<results->nbin;i++) {
-        fprintf(fp,"%10"PRIu64" %20.8lf %20.8lf %20.8lf \n",results->npairs[i],results->rpavg[i],rlow,results->rupp[i]);
+        fprintf(fp,"%10"PRIu64" %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf %20.8lf \n",results->npairs[i],results->vpavg[i],results->spavg[i],results->vtavg[i],results->stavg[i],results->rpavg[i],rlow,results->rupp[i]);
         rlow=results->rupp[i];
     }
     fclose(fp);
@@ -111,10 +111,10 @@ int test_periodic_DD(const char *correct_outputfile)
     my_snprintf(execstring,MAXLEN,"diff -q %s %s",correct_outputfile,tmpoutputfile);
     int ret=system(execstring);
 
-    free_results(&results);
+    free_results_pvs(&results);
     return ret;
 }
-*/
+
 
 
 int test_periodic_DDrppi_pvs(const char *correct_outputfile)
@@ -320,19 +320,19 @@ int main(int argc, char **argv)
     int status;
 
     //const char alltests_names[][MAXLEN] = {"Mr19 DD (periodic)","Mr19 DDrppi (periodic)","Mr19 wp (periodic)","Mr19 vpf (periodic)","Mr19 xi periodic)",
-    const char alltests_names[][MAXLEN] = {"Mr19 DDrppi_pvs (periodic)"};
+    const char alltests_names[][MAXLEN] = {"Mr19 DDrppi_pvs (periodic)","Mr19 DDpvs (periodic)"};
     const int ntests = sizeof(alltests_names)/(sizeof(char)*MAXLEN);
-    const int function_pointer_index[] = {0};//0->DDrppi_pvs
+    const int function_pointer_index[] = {0,1};//0->DDrppi_pvs, 1-> DDpvs
 
-    const char correct_outoutfiles[][MAXLEN] = {"Mr19_DDrppi_pvs_periodic"};
-    const char firstfilename[][MAXLEN] = {"../../xi_theory/tests/data/gals_Mr19.ff"};
-    const char firstfiletype[][MAXLEN] = {"f"};
-    const char secondfilename[][MAXLEN] = {"../../xi_theory/tests/data/gals_Mr19.ff"};
-    const char secondfiletype[][MAXLEN] = {"f"};
-    const DOUBLE allpimax[]             = {40.0};
+    const char correct_outoutfiles[][MAXLEN] = {"Mr19_DDrppi_pvs_periodic","Mr19_DDpvs_periodic"};
+    const char firstfilename[][MAXLEN] = {"../../xi_theory/tests/data/gals_Mr19.ff","../../xi_theory/tests/data/gals_Mr19.ff"};
+    const char firstfiletype[][MAXLEN] = {"f","f"};
+    const char secondfilename[][MAXLEN] = {"../../xi_theory/tests/data/gals_Mr19.ff","../../xi_theory/tests/data/gals_Mr19.ff"};
+    const char secondfiletype[][MAXLEN] = {"f","f"};
+    const DOUBLE allpimax[]             = {40.0,40.0};
 
-    int (*allfunctions[]) (const char *) = {test_periodic_DDrppi_pvs};
-    const int numfunctions=1;//5 functions total
+    int (*allfunctions[]) (const char *) = {test_periodic_DDrppi_pvs, test_periodic_DDpvs};
+    const int numfunctions=2;//5 functions total
 
     int total_tests=0,skipped=0;
 
@@ -422,7 +422,9 @@ int main(int argc, char **argv)
 
     if(X2 != X1) {
         free(X2);free(Y2);free(Z2);
+        free(VX2);free(VY2);free(VZ2);
     }
     free(X1);free(Y1);free(Z1);
+    free(VX1);free(VY1);free(VZ1);
     return EXIT_SUCCESS;
 }

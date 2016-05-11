@@ -24,8 +24,9 @@ extern "C" {
 #define OUTPUT_RPAVG
 #endif
 
+#ifndef KAHN_SUM
 #define KAHN_SUM
-
+#endif
 //define the results structure
 typedef struct{
 	uint64_t *npairs;

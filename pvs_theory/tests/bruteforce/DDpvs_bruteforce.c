@@ -177,6 +177,12 @@ void Printhelp(void)
     fprintf(stderr,"Precision = float\n");
 #endif
 
+#ifdef KAHN_SUM
+    fprintf(stderr,"Kahn summation = true\n");
+#else
+    fprintf(stderr,"Kahn summation = false\n");
+#endif
+
 #if defined(USE_AVX) && defined(__AVX__)
     fprintf(stderr,"Use AVX = True\n");
 #else

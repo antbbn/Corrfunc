@@ -162,6 +162,12 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
     DOUBLE spavg[nrpbin];
     DOUBLE vtavg[nrpbin];
     DOUBLE stavg[nrpbin];
+#ifdef KAHN_SUM
+    DOUBLE vpavg_c[nrpbin];
+    DOUBLE spavg_c[nrpbin];
+    DOUBLE vtavg_c[nrpbin];
+    DOUBLE stavg_c[nrpbin];
+#endif
     for(int i=0; i < nrpbin;i++) {
 #ifdef OUTPUT_RPAVG
         rpavg[i] = 0.0;
@@ -170,6 +176,12 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
         spavg[i] = 0.0;
         vtavg[i] = 0.0;
         stavg[i] = 0.0;
+#ifdef KAHN_SUM
+        vpavg_c[i] = 0.0;
+        spavg_c[i] = 0.0;
+        vtavg_c[i] = 0.0;
+        stavg_c[i] = 0.0;
+#endif
     }
 #else
 #ifdef OUTPUT_RPAVG
@@ -225,6 +237,12 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
         DOUBLE spavg[nrpbin];
         DOUBLE vtavg[nrpbin];
         DOUBLE stavg[nrpbin];
+#ifdef KAHN_SUM
+        DOUBLE vpavg_c[nrpbin];
+        DOUBLE spavg_c[nrpbin];
+        DOUBLE vtavg_c[nrpbin];
+        DOUBLE stavg_c[nrpbin];
+#endif
         for(int i=0; i < nrpbin;i++) {
 #ifdef OUTPUT_RPAVG
           rpavg[i] = 0.0;
@@ -233,6 +251,12 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
           spavg[i] = 0.0;
           vtavg[i] = 0.0;
           stavg[i] = 0.0;
+#ifdef KAHN_SUM
+          vpavg_c[i] = 0.0;
+          spavg_c[i] = 0.0;
+          vtavg_c[i] = 0.0;
+          stavg_c[i] = 0.0;
+#endif
         }
 
 
@@ -381,14 +405,53 @@ results_pvs_countpairs * countpairs_pvs(const int64_t ND1, const DOUBLE * const 
                                         const DOUBLE vt = SQRT(st);
                                         for(int kbin=nrpbin-1;kbin>=1;kbin--){
                                             if(r2 >= rupp_sqr[kbin-1]) {
+#ifdef KAHN_SUM
+                                                DOUBLE tmp1, tmp2;
+#endif
                                                 npairs[kbin]++;
 #ifdef OUTPUT_RPAVG
                                                 rpavg[kbin] += r;
 #endif
+                                                //vpavg[kbin]+=vp;
+                                                //spavg[kbin]+=sp;
+                                                //vtavg[kbin]+=vt;
+                                                //stavg[kbin]+=st;
+#ifndef KAHN_SUM
                                                 vpavg[kbin]+=vp;
+#else
+                                                tmp1 = vp - vpavg_c[kbin];
+                                                tmp2 = vpavg[kbin] + tmp1;
+                                                vpavg_c[kbin] = (tmp2 - vpavg[kbin]) - tmp1;
+                                                vpavg[kbin] = tmp2 ;
+#endif
+
+#ifndef KAHN_SUM
                                                 spavg[kbin]+=sp;
+#else
+                                                tmp1 = sp - spavg_c[kbin];
+                                                tmp2 = spavg[kbin] + tmp1;
+                                                spavg_c[kbin] = (tmp2 - spavg[kbin]) - tmp1;
+                                                spavg[kbin] = tmp2 ;
+#endif
+
+
+#ifndef KAHN_SUM
                                                 vtavg[kbin]+=vt;
+#else
+                                                tmp1 = vt - vtavg_c[kbin];
+                                                tmp2 = vtavg[kbin] + tmp1;
+                                                vtavg_c[kbin] = (tmp2 - vtavg[kbin]) - tmp1;
+                                                vtavg[kbin] = tmp2 ;
+#endif
+
+#ifndef KAHN_SUM
                                                 stavg[kbin]+=st;
+#else
+                                                tmp1 = st - stavg_c[kbin];
+                                                tmp2 = stavg[kbin] + tmp1;
+                                                stavg_c[kbin] = (tmp2 - stavg[kbin]) - tmp1;
+                                                stavg[kbin] = tmp2 ;
+#endif
                                                 break;
                                             }
                                         }//searching for kbin loop

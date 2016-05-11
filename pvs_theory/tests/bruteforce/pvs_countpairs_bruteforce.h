@@ -34,7 +34,11 @@ extern "C" {
                                     const char *binfile) __attribute__((warn_unused_result));
 
 
+
     void free_results_pvs(results_pvs_countpairs **results);
+
+  void get_max_min(const int64_t ND1, const DOUBLE * restrict X1, const DOUBLE * restrict Y1, const DOUBLE * restrict Z1,
+				 DOUBLE *min_x, DOUBLE *min_y, DOUBLE *min_z, DOUBLE *max_x, DOUBLE *max_y, DOUBLE *max_z);
 
 #ifdef __cplusplus
 }
